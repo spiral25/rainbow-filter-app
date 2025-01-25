@@ -30,8 +30,8 @@ def rgb_to_hue(image_array):
     hue[hue < 0] += 1  # Ensure no negative values
     return hue
 
-# Function to filter pixels based on the hue threshold and the smallest side of the rectangle around a chunk
-def filter_pixels(image, threshold, max_rectangle_side):
+# Function to filter pixels based on the hue threshold and minimum area size
+def filter_pixels(image, threshold, min_area):
     img_array = np.array(image)
     hue_values = rgb_to_hue(img_array)  # Calculate hue values
     mask = hue_values < threshold  # Pixels below the threshold
@@ -42,19 +42,14 @@ def filter_pixels(image, threshold, max_rectangle_side):
 
     for i in range(1, num_features + 1):
         region = (labeled_array == i)
-        region_indices = np.argwhere(region)
-        if region_indices.size > 0:
-            y_min, x_min = region_indices.min(axis=0)
-            y_max, x_max = region_indices.max(axis=0)
-            smallest_side = min(y_max - y_min + 1, x_max - x_min + 1)
-            if smallest_side <= max_rectangle_side:  # Check if the smallest side meets the condition
-                filtered_array[region] = img_array[region]
+        if np.sum(region) >= min_area:  # Check if the region size meets the minimum area
+            filtered_array[region] = img_array[region]
 
     return Image.fromarray(filtered_array)
 
 # Streamlit app
 st.title("Rainbow Pixel Filter")
-st.write("Upload an image and use the sliders to dynamically filter pixels based on the rainbow color scale and maximum rectangle side.")
+st.write("Upload an image and use the sliders to dynamically filter pixels based on the rainbow color scale and minimum area size.")
 
 # File uploader
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
@@ -76,17 +71,17 @@ if uploaded_file is not None:
         step=0.01,
     )
 
-    # Maximum rectangle side slider
-    max_rectangle_side = st.slider(
-        "Select the maximum size of the smallest side of the rectangle around connected pixel regions (in pixels):",
+    # Minimum area size slider
+    min_area = st.slider(
+        "Select the minimum size of connected pixel regions to display (in pixels):",
         min_value=1,
         max_value=1000,
-        value=50,  # Default value
+        value=1,  # Default value
         step=5,
     )
 
     # Filter pixels based on the slider values
-    filtered_image = filter_pixels(image, threshold, max_rectangle_side)
+    filtered_image = filter_pixels(image, threshold, min_area)
 
     # Display the filtered image
-    st.image(filtered_image, caption=f"Filtered Image (Threshold: {threshold}, Max Rectangle Side: {max_rectangle_side}px)", use_container_width=True)
+    st.image(filtered_image, caption=f"Filtered Image (Threshold: {threshold}, Min Area: {min_area}px)", use_container_width=True)

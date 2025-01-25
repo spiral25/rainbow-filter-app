@@ -42,7 +42,8 @@ def filter_pixels(image, threshold, min_area):
 
     for i in range(1, num_features + 1):
         region = (labeled_array == i)
-        if np.sum(region) >= min_area:  # Check if the region size meets the minimum area
+        # Ensure the area is calculated as a square region size
+        if np.sum(region) >= min_area ** 2:  # Check if the region size meets the minimum area squared
             filtered_array[region] = img_array[region]
 
     return Image.fromarray(filtered_array)
@@ -56,7 +57,7 @@ uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png
 if uploaded_file is not None:
     # Open the image
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
     # Rainbow color scale slider
     threshold = st.slider(
@@ -80,4 +81,4 @@ if uploaded_file is not None:
     filtered_image = filter_pixels(image, threshold, min_area)
 
     # Display the filtered image
-    st.image(filtered_image, caption=f"Filtered Image (Threshold: {threshold}, Min Area: {min_area}px)", use_container_width=True)
+    st.image(filtered_image, caption=f"Filtered Image (Threshold: {threshold}, Min Area: {min_area}px)", use_column_width=True)

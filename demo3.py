@@ -59,6 +59,10 @@ if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
+    # Convert image to hue array
+    img_array = np.array(image)
+    hue_values = rgb_to_hue(img_array)
+
     # Rainbow color scale slider
     threshold = st.slider(
         "Select a threshold on the rainbow scale (0 to 1):",
@@ -67,6 +71,11 @@ if uploaded_file is not None:
         value=0.5,  # Default value
         step=0.01,
     )
+
+    # Button to jump to the lowest hue value
+    if st.button("Jump to worst area"):
+        threshold = float(np.min(hue_values))
+        st.write(f"Threshold automatically set to: {threshold:.2f}")
 
     # Minimum area size slider
     min_area = st.slider(

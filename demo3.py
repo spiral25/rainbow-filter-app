@@ -64,19 +64,21 @@ if uploaded_file is not None:
     hue_values = rgb_to_hue(img_array)
 
     # Rainbow color scale slider
+    if "threshold" not in st.session_state:
+        st.session_state.threshold = 0.5  # Default value
+
     threshold = st.slider(
         "Select a threshold on the rainbow scale (0 to 1):",
         min_value=0.0,
         max_value=1.0,
-        value=0.5,  # Default value
+        value=st.session_state.threshold,  # Use session state value
         step=0.01,
     )
 
-    # Button to jump to the lowest hue value
+    # Button to jump to the worst area with the lowest visible hue threshold
     if st.button("Jump to worst area"):
-        threshold = float(np.min(hue_values))
-        st.session_state.threshold = threshold  # Save it in session state
-        st.write(f"Threshold automatically set to: {threshold:.2f}")
+        st.session_state.threshold = np.percentile(hue_values, 1)  # Set threshold to the 1st percentile of hue values
+        st.write(f"Threshold automatically set to: {st.session_state.threshold:.2f}")
 
     # Minimum area size slider
     min_area = st.slider(
@@ -88,7 +90,7 @@ if uploaded_file is not None:
     )
 
     # Filter pixels based on the slider values
-    filtered_image = filter_pixels(image, threshold, min_area)
+    filtered_image = filter_pixels(image, st.session_state.threshold, min_area)
 
     # Display the filtered image
-    st.image(filtered_image, caption=f"Filtered Image (Threshold: {threshold}, Min Area: {min_area}px)", use_container_width=True)
+    st.image(filtered_image, caption=f"Filtered Image (Threshold: {st.session_state.threshold}, Min Area: {min_area}px)", use_container_width=True)
